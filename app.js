@@ -603,24 +603,44 @@ uploadChunksBtn.addEventListener('click', async () => {
   let successCount = 0;
 
   try {
-    for (const chunk of confirmedChunks) {
+    const envTag = noisyEnvCheckbox.checked ? 'noisy' : 'silent';
+    const envFull = noisyEnvCheckbox.checked ? 'noisy_environment' : 'silent_room';
+
+    // Map Category to Specification Directory Hierarchy (Section 1.5)
+    let categoryPath = 'negative_word/general';
+    if (current.category === 'Trigger Word') {
+      categoryPath = 'trigger_word';
+    } else if (current.category === 'Rhyming Word') {
+      categoryPath = 'negative_word/rhyming';
+    }
+
+    for (let idx = 0; idx < confirmedChunks.length; idx++) {
+      const chunk = confirmedChunks[idx];
       const safe = (str) => str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      const fileName = `${safe(speaker)}_${safe(current.word)}_${env}_${Date.now()}_${chunk.id}.wav`;
-      const categoryFolder = current.category.toLowerCase().replace(' ', '_');
-      const storagePath = `recordings/${categoryFolder}/${safe(speaker)}/${fileName}`;
+
+      // Zero-padded 3-digit sequence number
+      const seqStr = String(idx + 1).padStart(3, '0');
+      const timeStamp = Date.now().toString().slice(-4);
+      
+      // Standardized Filename: <speaker>_<word>_<env>_<seq>.wav
+      const fileName = `${safe(speaker)}_${safe(current.word)}_${envTag}_${timeStamp}_${seqStr}.wav`;
+      
+      // Standardized Storage Path: dataset/<category>/<speaker>/<filename>
+      const storagePath = `dataset/${categoryPath}/${safe(speaker)}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('recordings')
-        .upload(storagePath, chunk.blob, { contentType: 'audio/wav', upsert: false });
+        .upload(storagePath, chunk.blob, { contentType: 'audio/wav', upsert: true });
 
       const { data: publicUrlData } = supabase.storage.from('recordings').getPublicUrl(storagePath);
       const audioUrl = publicUrlData ? publicUrlData.publicUrl : '';
 
       const { error: dbError } = await supabase.from('voiceSample').insert([{
-        name: speaker,
-        targetword: current.word,
+        name: safe(speaker),
+        targetword: safe(current.word),
         category: current.category,
         hasbackgroundnoise: noisyEnvCheckbox.checked,
+        environment: envFull,
         audiourl: audioUrl,
         audiopath: storagePath,
         mimetype: 'audio/wav',
