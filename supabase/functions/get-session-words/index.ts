@@ -39,7 +39,7 @@ serve(async (req: Request) => {
     const pinHeader = req.headers.get("x-collector-pin");
 
     const envPin = Deno.env.get("AUTHORIZED_PIN");
-    const validPins = [envPin, "113225", "11322504", "1234"].filter(Boolean);
+    const validPins = [envPin, "113225"].filter(Boolean);
 
     // PIN Security Check
     if (pinHeader && !validPins.includes(pinHeader)) {

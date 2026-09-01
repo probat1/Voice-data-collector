@@ -134,14 +134,14 @@ function initAuth() {
   }
 }
 
-const VALID_PINS = ['113225', '11322504', '1234'];
+const VALID_PINS = ['113225'];
 
 authForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const inputPin = pinInput.value.trim();
   authError.classList.add('hidden');
   
-  if (VALID_PINS.includes(inputPin) || inputPin.length >= 4) {
+  if (VALID_PINS.includes(inputPin)) {
     enteredUserPin = inputPin;
     sessionStorage.setItem('authenticated', 'true');
     sessionStorage.setItem('user_collector_pin', inputPin);
