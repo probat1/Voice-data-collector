@@ -1,0 +1,12 @@
+# Environment variables
+.env
+.env.local
+*.env
+
+# Cache & Temporary Files
+__pycache__/
+*.pyc
+.temp/
+
+# Dependencies
+node_modules/
