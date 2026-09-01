@@ -38,7 +38,7 @@ serve(async (req: Request) => {
     const url = new URL(req.url);
     const pinHeader = req.headers.get("x-collector-pin");
 
-    const authorizedPin = Deno.env.get("AUTHORIZED_PIN") || "11322504";
+    const authorizedPin = Deno.env.get("AUTHORIZED_PIN") || "113225";
 
     // PIN Security Check
     if (pinHeader && pinHeader !== authorizedPin) {
