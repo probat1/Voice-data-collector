@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice Sample Collector</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="mesh-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <main class="flex items-center justify-center min-h-screen px-4 py-8">
+    <div class="glass-card w-full max-w-[480px]">
+      <header class="text-center mb-8">
+        <h1 class="text-3xl font-semibold mb-2" style="color: var(--text-primary); letter-spacing: -0.02em;">Voice Sample Collector</h1>
+        <p class="text-base" style="color: var(--text-secondary);">Record a clean sample for the keyword-spotting dataset.</p>
+      </header>
+
+      <form id="sampleForm">
+        <div class="field">
+          <input type="text" id="name" required placeholder=" " />
+          <label for="name">Name</label>
+        </div>
+
+        <div class="field">
+          <input type="text" id="targetWord" required placeholder=" " />
+          <label for="targetWord">Target Word</label>
+        </div>
+
+        <fieldset class="mb-6">
+          <legend class="text-sm font-medium mb-3" style="color: var(--text-secondary);">Word category</legend>
+          <div class="radio-group">
+            <input type="radio" name="category" id="categoryNegative" value="Negative Word" />
+            <label for="categoryNegative">Negative Word</label>
+
+            <input type="radio" name="category" id="categoryTrigger" value="Trigger Word" checked />
+            <label for="categoryTrigger">Trigger Word</label>
+
+            <input type="radio" name="category" id="categoryRhyming" value="Rhyming Word" />
+            <label for="categoryRhyming">Rhyming Word</label>
+          </div>
+        </fieldset>
+
+        <div id="recordSection" class="mb-6">
+          <div class="flex flex-col items-center gap-6 mb-6">
+            <div class="relative flex items-center justify-center">
+              <button type="button" id="recordBtn" class="record-btn" aria-label="Start recording">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14Z" fill="white"/>
+                  <path d="M17 11C17 13.76 14.76 16 12 16C9.24 16 7 13.76 7 11H5C5 14.53 7.61 17.43 11 17.92V21H13V17.92C16.39 17.43 19 14.53 19 11H17Z" fill="white"/>
+                </svg>
+              </button>
+
+              <svg class="progress-ring hidden absolute" width="180" height="180" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <circle class="bg" cx="90" cy="90" r="70" />
+                <circle class="fg" cx="90" cy="90" r="70" />
+              </svg>
+            </div>
+
+            <div id="countdownNumber" class="hidden text-4xl font-medium" style="color: var(--accent-2);" aria-live="polite" aria-atomic="true">15</div>
+          </div>
+
+          <p id="helperText" class="text-center text-sm mb-6" style="color: var(--text-secondary);">Say the word repeatedly with natural pauses in between.</p>
+
+          <div id="playerContainer"></div>
+        </div>
+
+        <div id="noiseToggleRow" class="hidden flex items-center justify-between mb-6 p-4 rounded-xl" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+          <label for="noiseToggle" class="text-sm font-medium" style="color: var(--text-primary);">Is there background noise in this recording?</label>
+          <div class="toggle">
+            <input type="checkbox" id="noiseToggle" />
+            <div class="track"></div>
+            <div class="thumb"></div>
+          </div>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-primary" disabled>
+          Submit Data
+        </button>
+      </form>
+
+      <div id="statusMsg" class="mt-4 text-center text-sm" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  </main>
+
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

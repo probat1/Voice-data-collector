@@ -1,0 +1,472 @@
+:root {
+  --bg-void:      #0A0B10;
+  --bg-void-2:    #0F1117;
+  --accent:       #635BFF;
+  --accent-soft:  #8B7CFF;
+  --accent-2:     #22D9C0;
+  --danger:       #FF4D6D;
+  --danger-2:     #C2185B;
+  --text-primary:   #F5F6FA;
+  --text-secondary: #9CA3AF;
+  --text-tertiary:  #6B7280;
+  --glass-bg:     rgba(255, 255, 255, 0.055);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --radius-lg: 28px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --shadow-ambient:
+    0 30px 80px -20px rgba(99, 91, 255, 0.30),
+    0 45px 110px -35px rgba(0, 0, 0, 0.70);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-void);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* Mesh gradient background */
+.mesh-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: var(--bg-void);
+}
+
+.mesh-bg .blob {
+  position: absolute;
+  width: 60vw;
+  height: 60vw;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.5;
+}
+
+.mesh-bg .blob-1 {
+  background: radial-gradient(circle, var(--accent), transparent 70%);
+  top: -15%;
+  left: -15%;
+  animation: drift1 34s ease-in-out infinite alternate;
+}
+
+.mesh-bg .blob-2 {
+  background: radial-gradient(circle, var(--accent-2), transparent 70%);
+  bottom: -20%;
+  right: -10%;
+  animation: drift2 40s ease-in-out infinite alternate;
+}
+
+.mesh-bg .blob-3 {
+  background: radial-gradient(circle, #C084FC, transparent 70%);
+  top: 30%;
+  right: 20%;
+  width: 40vw;
+  height: 40vw;
+  opacity: 0.3;
+  animation: drift3 46s ease-in-out infinite alternate;
+}
+
+@keyframes drift1 {
+  to { transform: translate(15vw, 10vh) scale(1.15); }
+}
+
+@keyframes drift2 {
+  to { transform: translate(-12vw, -8vh) scale(1.1); }
+}
+
+@keyframes drift3 {
+  to { transform: translate(-8vw, 12vh) scale(0.9); }
+}
+
+/* Glass card */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-ambient);
+  padding: 2.5rem;
+}
+
+/* Floating-label inputs */
+.field {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.field input {
+  width: 100%;
+  padding: 1.15rem 1rem 0.55rem;
+  font-size: 1rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  transition: border-color .15s ease, box-shadow .15s ease;
+  font-family: inherit;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(99,91,255,0.18);
+}
+
+.field label {
+  position: absolute;
+  left: 1rem;
+  top: 1.15rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  pointer-events: none;
+  transition: all .15s ease;
+}
+
+.field input:focus + label,
+.field input:not(:placeholder-shown) + label {
+  top: 0.45rem;
+  font-size: 0.7rem;
+  color: var(--accent);
+}
+
+/* Category radio — segmented control */
+.radio-group {
+  display: flex;
+  gap: 0.4rem;
+  background: rgba(255,255,255,0.04);
+  padding: 0.35rem;
+  border-radius: var(--radius-md);
+}
+
+.radio-group input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.radio-group label {
+  flex: 1;
+  text-align: center;
+  padding: 0.65rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all .18s ease;
+}
+
+.radio-group input:checked + label {
+  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+  color: #fff;
+  box-shadow: 0 6px 18px -6px rgba(99,91,255,0.6);
+}
+
+.radio-group input:focus-visible + label {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+/* Record button + pulse */
+.record-btn {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(160deg, var(--danger), var(--danger-2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.record-btn:hover {
+  transform: scale(1.04);
+}
+
+.record-btn:active {
+  transform: scale(0.95);
+}
+
+.record-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.record-btn.is-recording::before,
+.record-btn.is-recording::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--danger);
+  opacity: 0.7;
+  animation: pulseRing 1.8s ease-out infinite;
+}
+
+.record-btn.is-recording::after {
+  animation-delay: 0.6s;
+}
+
+@keyframes pulseRing {
+  to {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* Stop icon when recording */
+.record-btn.is-recording svg path {
+  d: path("M6 6h12v12H6z");
+}
+
+/* Circular countdown ring */
+.progress-ring circle {
+  fill: none;
+  stroke-width: 6;
+}
+
+.progress-ring .bg {
+  stroke: rgba(255,255,255,0.1);
+}
+
+.progress-ring .fg {
+  stroke: var(--accent-2);
+  stroke-linecap: round;
+  stroke-dasharray: 439.8;
+  stroke-dashoffset: 439.8;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 15s linear;
+}
+
+#countdownNumber {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 2.25rem;
+  font-weight: 500;
+}
+
+/* Helper text fade-in */
+#helperText {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .4s ease, transform .4s ease;
+}
+
+#helperText.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Toggle switch */
+.toggle {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.toggle .track {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.15);
+  border-radius: 999px;
+  transition: background .2s ease;
+}
+
+.toggle .thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .2s ease;
+}
+
+.toggle input:checked + .track {
+  background: var(--accent);
+}
+
+.toggle input:checked ~ .thumb {
+  transform: translateX(20px);
+}
+
+.toggle input:focus-visible + .track {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+/* Custom audio player */
+#playerContainer {
+  margin-top: 1.5rem;
+  padding: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px -4px rgba(0,0,0,0.2);
+}
+
+audio {
+  width: 100%;
+  height: 44px;
+  border-radius: 999px;
+  filter: invert(0.9) hue-rotate(180deg);
+  background: rgba(255,255,255,0.04);
+}
+
+/* Submit button + spinner */
+.btn-primary {
+  width: 100%;
+  padding: 0.9rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: transform .15s ease, opacity .15s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: scale(1.015);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Status messages */
+#statusMsg {
+  min-height: 1.25rem;
+  font-weight: 500;
+}
+
+#statusMsg.success {
+  color: var(--accent-2);
+}
+
+#statusMsg.error {
+  color: var(--danger);
+}
+
+/* Utility classes */
+.hidden {
+  display: none !important;
+}
+
+/* Fieldset styling */
+fieldset {
+  border: none;
+}
+
+legend {
+  padding: 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .glass-card {
+    padding: 1.5rem 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .record-btn {
+    width: 96px;
+    height: 96px;
+  }
+
+  .record-btn svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .progress-ring {
+    width: 120px !important;
+    height: 120px !important;
+  }
+
+  .progress-ring circle {
+    stroke-width: 4;
+  }
+
+  #countdownNumber {
+    font-size: 1.75rem;
+  }
+
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  .radio-group label {
+    font-size: 0.75rem;
+    padding: 0.55rem 0.35rem;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .mesh-bg .blob {
+    animation: none;
+  }
+
+  .record-btn.is-recording::before,
+  .record-btn.is-recording::after {
+    animation: none;
+    opacity: 0.4;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
