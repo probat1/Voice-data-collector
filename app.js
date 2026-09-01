@@ -28,9 +28,6 @@ let animFrameId = null;
 let fullAudioBuffer = null;
 let extractedChunks = [];
 
-// Storage Mode ('local' or 'supabase')
-let currentStorageMode = 'local';
-
 // Active HTML5 Audio objects map for tap-to-play
 const activeAudioMap = new Map();
 
@@ -40,12 +37,6 @@ const authForm = document.getElementById('authForm');
 const pinInput = document.getElementById('pinInput');
 const authError = document.getElementById('authError');
 const lockBtn = document.getElementById('lockBtn');
-
-const storageModeSelect = document.getElementById('storageModeSelect');
-const localManagerBar = document.getElementById('localManagerBar');
-const localCountBadge = document.getElementById('localCountBadge');
-const clearLocalBtn = document.getElementById('clearLocalBtn');
-const syncSupabaseBtn = document.getElementById('syncSupabaseBtn');
 
 const speakerSelect = document.getElementById('speakerSelect');
 const newSpeakerContainer = document.getElementById('newSpeakerContainer');
@@ -79,144 +70,6 @@ const completionScreen = document.getElementById('completionScreen');
 const completionTitle = document.getElementById('completionTitle');
 const completionMsg = document.getElementById('completionMsg');
 const startNewSessionBtn = document.getElementById('startNewSessionBtn');
-
-// ============================================
-// IndexedDB Engine for Local Sandbox Mode
-// ============================================
-
-function openLocalDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('VoiceCollectorLocalDB', 1);
-    request.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains('samples')) {
-        db.createObjectStore('samples', { keyPath: 'id', autoIncrement: true });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function saveToLocalDB(item) {
-  const db = await openLocalDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('samples', 'readwrite');
-    const store = tx.objectStore('samples');
-    store.add(item);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-async function getAllLocalDB() {
-  const db = await openLocalDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('samples', 'readonly');
-    const store = tx.objectStore('samples');
-    const request = store.getAll();
-    request.onsuccess = () => resolve(request.result || []);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function clearLocalDB() {
-  const db = await openLocalDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('samples', 'readwrite');
-    const store = tx.objectStore('samples');
-    store.clear();
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-async function updateLocalCountUI() {
-  try {
-    const items = await getAllLocalDB();
-    localCountBadge.textContent = `Local Clips: ${items.length} saved`;
-  } catch (err) {
-    console.error('Error reading local count:', err);
-  }
-}
-
-// Storage Destination Switch
-storageModeSelect.addEventListener('change', () => {
-  currentStorageMode = storageModeSelect.value;
-  if (currentStorageMode === 'local') {
-    localManagerBar.classList.remove('hidden');
-    uploadChunksBtn.querySelector('span').textContent = '➡️ Confirm & Save Local';
-    showStatus('Storage Mode: Local Sandbox (Supabase DB will NOT be touched).', 'info');
-  } else {
-    uploadChunksBtn.querySelector('span').textContent = '➡️ Confirm & Upload Supabase';
-    showStatus('Storage Mode: Live Supabase Cloud Database active.', 'info');
-  }
-});
-
-clearLocalBtn.addEventListener('click', async () => {
-  if (confirm('Are you sure you want to clear all locally saved test clips?')) {
-    await clearLocalDB();
-    await updateLocalCountUI();
-    showStatus('Cleared local test samples.', 'info');
-  }
-});
-
-syncSupabaseBtn.addEventListener('click', async () => {
-  const items = await getAllLocalDB();
-  if (items.length === 0) {
-    showStatus('No local test samples available to sync.', 'error');
-    return;
-  }
-
-  if (!confirm(`Sync ${items.length} local sample clip(s) to Supabase Cloud Database?`)) {
-    return;
-  }
-
-  syncSupabaseBtn.disabled = true;
-  syncSupabaseBtn.textContent = 'Syncing...';
-
-  let successCount = 0;
-  try {
-    for (const item of items) {
-      const safe = (str) => str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      const fileName = `${safe(item.name)}_${safe(item.targetword)}_${item.hasbackgroundnoise ? 'noisy' : 'silent'}_${Date.now()}.wav`;
-      const categoryFolder = item.category.toLowerCase().replace(' ', '_');
-      const storagePath = `recordings/${categoryFolder}/${safe(item.name)}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('recordings')
-        .upload(storagePath, item.blob, { contentType: 'audio/wav', upsert: false });
-
-      const { data: publicUrlData } = supabase.storage.from('recordings').getPublicUrl(storagePath);
-      const audioUrl = publicUrlData ? publicUrlData.publicUrl : '';
-
-      const { error: dbError } = await supabase.from('voiceSample').insert([{
-        name: item.name,
-        targetword: item.targetword,
-        category: item.category,
-        hasbackgroundnoise: item.hasbackgroundnoise,
-        audiourl: audioUrl,
-        audiopath: storagePath,
-        mimetype: 'audio/wav',
-        durationMs: item.durationMs,
-        createdAT: new Date().toISOString()
-      }]);
-
-      if (!dbError) successCount++;
-    }
-
-    showStatus(`Successfully synced ${successCount} clip(s) to Supabase Database!`, 'success');
-    await clearLocalDB();
-    await updateLocalCountUI();
-
-  } catch (err) {
-    console.error('Sync error:', err);
-    showStatus('Error syncing some samples to Supabase.', 'error');
-  } finally {
-    syncSupabaseBtn.disabled = false;
-    syncSupabaseBtn.textContent = '☁️ Sync';
-  }
-});
 
 // ============================================
 // Initialization & PIN Auth
@@ -727,7 +580,7 @@ rerecordBtn.addEventListener('click', () => {
 });
 
 // ============================================
-// ➡️ Confirm & Next Step Action Handler
+// ➡️ Confirm & Next Step Action Handler (Direct Supabase Upload)
 // ============================================
 
 uploadChunksBtn.addEventListener('click', async () => {
@@ -743,67 +596,48 @@ uploadChunksBtn.addEventListener('click', async () => {
 
   activeAudioMap.forEach(a => a.pause());
 
-  // Save to Local or Supabase
-  if (currentStorageMode === 'local') {
+  uploadChunksBtn.disabled = true;
+  uploadChunksBtn.innerHTML = `<div class="spinner"></div><span>Saving...</span>`;
+
+  const env = noisyEnvCheckbox.checked ? 'noisy_environment' : 'silent_room';
+  let successCount = 0;
+
+  try {
     for (const chunk of confirmedChunks) {
-      await saveToLocalDB({
+      const safe = (str) => str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const fileName = `${safe(speaker)}_${safe(current.word)}_${env}_${Date.now()}_${chunk.id}.wav`;
+      const categoryFolder = current.category.toLowerCase().replace(' ', '_');
+      const storagePath = `recordings/${categoryFolder}/${safe(speaker)}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('recordings')
+        .upload(storagePath, chunk.blob, { contentType: 'audio/wav', upsert: false });
+
+      const { data: publicUrlData } = supabase.storage.from('recordings').getPublicUrl(storagePath);
+      const audioUrl = publicUrlData ? publicUrlData.publicUrl : '';
+
+      const { error: dbError } = await supabase.from('voiceSample').insert([{
         name: speaker,
         targetword: current.word,
         category: current.category,
         hasbackgroundnoise: noisyEnvCheckbox.checked,
-        blob: chunk.blob,
+        audiourl: audioUrl,
+        audiopath: storagePath,
+        mimetype: 'audio/wav',
         durationMs: Math.round(chunk.duration * 1000),
         createdAT: new Date().toISOString()
-      });
+      }]);
+
+      if (!dbError) successCount++;
     }
 
-    await updateLocalCountUI();
-    showStatus(`Saved ${confirmedChunks.length} clip(s) for ${current.word}!`, 'success');
-
-  } else {
-    uploadChunksBtn.disabled = true;
-    uploadChunksBtn.innerHTML = `<div class="spinner"></div><span>Saving...</span>`;
-
-    const env = noisyEnvCheckbox.checked ? 'noisy_environment' : 'silent_room';
-    let successCount = 0;
-
-    try {
-      for (const chunk of confirmedChunks) {
-        const safe = (str) => str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        const fileName = `${safe(speaker)}_${safe(current.word)}_${env}_${Date.now()}_${chunk.id}.wav`;
-        const categoryFolder = current.category.toLowerCase().replace(' ', '_');
-        const storagePath = `recordings/${categoryFolder}/${safe(speaker)}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('recordings')
-          .upload(storagePath, chunk.blob, { contentType: 'audio/wav', upsert: false });
-
-        const { data: publicUrlData } = supabase.storage.from('recordings').getPublicUrl(storagePath);
-        const audioUrl = publicUrlData ? publicUrlData.publicUrl : '';
-
-        const { error: dbError } = await supabase.from('voiceSample').insert([{
-          name: speaker,
-          targetword: current.word,
-          category: current.category,
-          hasbackgroundnoise: noisyEnvCheckbox.checked,
-          audiourl: audioUrl,
-          audiopath: storagePath,
-          mimetype: 'audio/wav',
-          durationMs: Math.round(chunk.duration * 1000),
-          createdAT: new Date().toISOString()
-        }]);
-
-        if (!dbError) successCount++;
-      }
-
-      showStatus(`Uploaded ${confirmedChunks.length} clip(s) for ${current.word}!`, 'success');
-    } catch (err) {
-      console.error('Batch upload error:', err);
-      showStatus('Failed to complete upload to Supabase.', 'error');
-    } finally {
-      uploadChunksBtn.disabled = false;
-      uploadChunksBtn.innerHTML = `<span>➡️ Confirm & Next Step</span>`;
-    }
+    showStatus(`Uploaded ${confirmedChunks.length} clip(s) for ${current.word}!`, 'success');
+  } catch (err) {
+    console.error('Batch upload error:', err);
+    showStatus('Failed to complete upload to Supabase.', 'error');
+  } finally {
+    uploadChunksBtn.disabled = false;
+    uploadChunksBtn.innerHTML = `<span>➡️ Confirm & Next Step</span>`;
   }
 
   // Check if session completed (after Step 5)
@@ -852,4 +686,3 @@ function showStatus(msg, type = 'info') {
 initAuth();
 loadSpeakers();
 updateStepUI();
-updateLocalCountUI();
