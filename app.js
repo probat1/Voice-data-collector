@@ -723,7 +723,6 @@ uploadChunksBtn.addEventListener('click', async () => {
         targetword: safe(current.word),
         category: current.category,
         hasbackgroundnoise: noisyEnvCheckbox.checked,
-        environment: envFull,
         audiourl: audioUrl,
         audiopath: storagePath,
         mimetype: 'audio/wav',
