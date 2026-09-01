@@ -1,4 +1,4 @@
-import { supabase } from './supabase-config.js';
+import { supabase, BACKEND_API_URL } from './supabase-config.js';
 
 // ============================================
 // State Management & Constants
@@ -13,6 +13,38 @@ const SESSION_STEPS = [
   { step: 4, word: 'LAPTOP', category: 'Negative Word', duration: 5, hint: 'Say random negative word "Laptop" repeatedly with 1-sec pauses.' },
   { step: 5, word: 'BOTTLE', category: 'Negative Word', duration: 5, hint: 'Say random negative word "Bottle" repeatedly with 1-sec pauses.' }
 ];
+
+// Fetch Dynamic Session Words from Backend Server API
+async function fetchServerSessionWords(speakerName) {
+  if (!speakerName) return;
+  try {
+    const res = await fetch(`${BACKEND_API_URL}/api/session-words?speaker=${encodeURIComponent(speakerName)}`, {
+      headers: { 'X-Collector-PIN': DEFAULT_PIN }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.trigger_word) {
+        SESSION_STEPS[0].word = data.trigger_word.toUpperCase();
+        SESSION_STEPS[0].hint = `Repeat "${SESSION_STEPS[0].word}" multiple times with 1-sec pauses (varying pitch & tone).`;
+      }
+      if (data.rhyming_words && data.rhyming_words.length >= 2) {
+        SESSION_STEPS[1].word = data.rhyming_words[0].toUpperCase();
+        SESSION_STEPS[1].hint = `Say phonetically similar word "${SESSION_STEPS[1].word}" repeatedly with 1-sec pauses.`;
+        SESSION_STEPS[2].word = data.rhyming_words[1].toUpperCase();
+        SESSION_STEPS[2].hint = `Say phonetically similar word "${SESSION_STEPS[2].word}" repeatedly with 1-sec pauses.`;
+      }
+      if (data.negative_words && data.negative_words.length >= 2) {
+        SESSION_STEPS[3].word = data.negative_words[0].toUpperCase();
+        SESSION_STEPS[3].hint = `Say random negative word "${SESSION_STEPS[3].word}" repeatedly with 1-sec pauses.`;
+        SESSION_STEPS[4].word = data.negative_words[1].toUpperCase();
+        SESSION_STEPS[4].hint = `Say random negative word "${SESSION_STEPS[4].word}" repeatedly with 1-sec pauses.`;
+      }
+      console.log('Fetched dynamic session words from backend server:', data);
+    }
+  } catch (err) {
+    console.warn('Backend server offline or unreachable. Using fallback word dictionary.', err);
+  }
+}
 
 let currentStepIndex = 0;
 let mediaRecorder = null;
@@ -120,12 +152,14 @@ function loadSpeakers() {
   speakerSelect.appendChild(addNewOpt);
 }
 
-speakerSelect.addEventListener('change', () => {
+speakerSelect.addEventListener('change', async () => {
   if (speakerSelect.value === '__add_new__') {
     newSpeakerContainer.classList.remove('hidden');
     newSpeakerInput.focus();
   } else {
     newSpeakerContainer.classList.add('hidden');
+    await fetchServerSessionWords(speakerSelect.value);
+    updateStepUI();
   }
 });
 
@@ -703,6 +737,11 @@ function showStatus(msg, type = 'info') {
 }
 
 // App Initialization
-initAuth();
-loadSpeakers();
-updateStepUI();
+(async function initApp() {
+  initAuth();
+  loadSpeakers();
+  if (speakerSelect.value && speakerSelect.value !== '__add_new__') {
+    await fetchServerSessionWords(speakerSelect.value);
+  }
+  updateStepUI();
+})();

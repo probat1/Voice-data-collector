@@ -5,5 +5,5 @@ const SUPABASE_ANON_KEY = 'sb_publishable_sFQ1LqTF2CZ6y-ZnsGYu9Q_NILLEtSM';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-
-// https://ethzeecixqtcfumnolly.supabase.co/rest/v1/Voice Sample
+// Backend Server API URL (Python FastAPI server or Supabase Edge Function)
+export const BACKEND_API_URL = 'http://localhost:8000';
