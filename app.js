@@ -4,8 +4,6 @@ import { supabase, BACKEND_API_URL, SUPABASE_ANON_KEY } from './supabase-config.
 // State Management & Constants
 // ============================================
 
-const DEFAULT_PIN = '113225';
-
 const SESSION_STEPS = [
   { step: 1, word: 'HEY NEXUS', category: 'Trigger Word', duration: 30, hint: 'Repeat "Hey Nexus" multiple times with 1-sec pauses (varying pitch, speed & tone).' },
   { step: 2, word: 'HEY', category: 'Rhyming Word', duration: 5, hint: 'Say phonetically similar word "Hey" repeatedly with 1-sec pauses.' },
@@ -14,9 +12,13 @@ const SESSION_STEPS = [
   { step: 5, word: 'SET A TIMER', category: 'Negative Word', duration: 5, hint: 'Say random negative phrase repeatedly with 1-sec pauses.' }
 ];
 
+// Track authenticated state and entered user PIN dynamically (no hardcoded PIN in codebase)
+let enteredUserPin = sessionStorage.getItem('user_collector_pin') || '';
+
 // Fetch Dynamic Session Words from Backend Server API or Supabase Edge Function
-async function fetchServerSessionWords(speakerName) {
-  if (!speakerName) return;
+async function fetchServerSessionWords(speakerName, pinToVerify) {
+  if (!speakerName) return false;
+  const pin = pinToVerify || enteredUserPin;
   try {
     let apiUrl = BACKEND_API_URL;
     if (apiUrl.includes('get-session-words')) {
@@ -29,9 +31,14 @@ async function fetchServerSessionWords(speakerName) {
       headers: {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'X-Collector-PIN': DEFAULT_PIN
+        'X-Collector-PIN': pin
       }
     });
+
+    if (res.status === 401) {
+      return false;
+    }
+
     if (res.ok) {
       const data = await res.json();
       if (data.trigger_word) {
@@ -127,13 +134,21 @@ function initAuth() {
   }
 }
 
-authForm.addEventListener('submit', (e) => {
+authForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (pinInput.value === DEFAULT_PIN) {
+  const inputPin = pinInput.value.trim();
+  authError.classList.add('hidden');
+  
+  // Verify PIN dynamically against backend server / Supabase Edge Function
+  const isValid = await fetchServerSessionWords(speakerSelect.value || 'rahul', inputPin);
+  
+  if (isValid) {
+    enteredUserPin = inputPin;
     sessionStorage.setItem('authenticated', 'true');
+    sessionStorage.setItem('user_collector_pin', inputPin);
     authOverlay.classList.add('hidden');
-    authError.classList.add('hidden');
     pinInput.value = '';
+    updateStepUI();
   } else {
     authError.classList.remove('hidden');
   }
@@ -141,6 +156,8 @@ authForm.addEventListener('submit', (e) => {
 
 lockBtn.addEventListener('click', () => {
   sessionStorage.removeItem('authenticated');
+  sessionStorage.removeItem('user_collector_pin');
+  enteredUserPin = '';
   initAuth();
 });
 
