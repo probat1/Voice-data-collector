@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local Dataset Inspector - Voice Collector</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <div class="mesh-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <header class="flex items-center justify-between mb-8 bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-md">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-2xl">
+          📊
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white tracking-tight">Dataset Inspector</h1>
+          <p class="text-xs text-slate-400">View and manage locally stored test samples</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-300 border border-white/10 transition">
+          🎙️ Open Voice Collector
+        </a>
+      </div>
+    </header>
+
+    <div class="glass-card p-6 sm:p-8 space-y-6">
+      
+      <!-- Top Control Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+        <div>
+          <h2 class="text-lg font-bold text-white">Local Sandbox Storage (IndexedDB)</h2>
+          <p class="text-xs text-slate-400" id="dbSummaryText">Loading clips...</p>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <button type="button" id="refreshBtn" class="px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/30 text-xs font-semibold transition">
+            🔄 Refresh
+          </button>
+          <button type="button" id="clearAllBtn" class="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition">
+            🗑️ Clear All Local Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters & Search -->
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input type="text" id="searchInput" placeholder="Search by target word or speaker..." class="flex-1 bg-slate-900/80 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" />
+        <select id="categoryFilter" class="bg-slate-900/80 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none">
+          <option value="all">All Categories</option>
+          <option value="Trigger Word">Trigger Words</option>
+          <option value="Rhyming Word">Rhyming Words</option>
+          <option value="Negative Word">Negative Words</option>
+        </select>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div class="text-xs text-slate-400 uppercase font-semibold">Total Audio Clips</div>
+          <div id="statTotalClips" class="text-2xl font-black text-white font-mono mt-1">0</div>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div class="text-xs text-slate-400 uppercase font-semibold">Unique Speakers</div>
+          <div id="statSpeakers" class="text-2xl font-black text-emerald-400 font-mono mt-1">0</div>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div class="text-xs text-slate-400 uppercase font-semibold">Total Audio Secs</div>
+          <div id="statTotalSecs" class="text-2xl font-black text-indigo-400 font-mono mt-1">0s</div>
+        </div>
+      </div>
+
+      <!-- Samples List -->
+      <div id="samplesContainer" class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+        <!-- Dynamically rendered sample cards -->
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module">
+    function openLocalDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open('VoiceCollectorLocalDB', 1);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function getAllSamples() {
+      try {
+        const db = await openLocalDB();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction('samples', 'readonly');
+          const store = tx.objectStore('samples');
+          const request = store.getAll();
+          request.onsuccess = () => resolve(request.result || []);
+          request.onerror = () => reject(request.error);
+        });
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function deleteSample(id) {
+      const db = await openLocalDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('samples', 'readwrite');
+        const store = tx.objectStore('samples');
+        store.delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function clearAllSamples() {
+      const db = await openLocalDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('samples', 'readwrite');
+        const store = tx.objectStore('samples');
+        store.clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    let allSamples = [];
+
+    async function render() {
+      allSamples = await getAllSamples();
+      const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+      const categoryFilter = document.getElementById('categoryFilter').value;
+
+      const filtered = allSamples.filter(item => {
+        const matchSearch = !searchTerm || (item.targetword && item.targetword.toLowerCase().includes(searchTerm)) || (item.name && item.name.toLowerCase().includes(searchTerm));
+        const matchCategory = categoryFilter === 'all' || item.category === categoryFilter;
+        return matchSearch && matchCategory;
+      });
+
+      document.getElementById('dbSummaryText').textContent = `Displaying ${filtered.length} of ${allSamples.length} local clips`;
+      document.getElementById('statTotalClips').textContent = filtered.length;
+      document.getElementById('statSpeakers').textContent = new Set(filtered.map(i => (i.name || '').toLowerCase())).size;
+      document.getElementById('statTotalSecs').textContent = (filtered.reduce((sum, i) => sum + (i.durationMs || 1000), 0) / 1000).toFixed(1) + 's';
+
+      const container = document.getElementById('samplesContainer');
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 bg-white/5 border border-white/10 rounded-xl text-slate-400 text-sm">No local sample clips found. Record some clips in Voice Collector!</div>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'bg-slate-900/90 border border-white/10 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-indigo-500/40 transition';
+
+        const url = URL.createObjectURL(item.blob);
+        const dateStr = item.createdAT ? new Date(item.createdAT).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        const envText = item.hasbackgroundnoise ? '🔊 Noisy Room' : '🔇 Silent Room';
+
+        card.innerHTML = `
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <span class="text-base font-black text-white font-mono tracking-wider">${item.targetword}</span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-medium border border-indigo-500/30">${item.category}</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-white/5 text-slate-300 font-medium border border-white/10">${envText}</span>
+            </div>
+            <div class="text-xs text-slate-400">
+              Speaker: <strong class="text-slate-200 capitalize">${item.name}</strong> • Duration: <span class="font-mono text-emerald-400">${((item.durationMs || 1000) / 1000).toFixed(1)}s</span> • ${dateStr}
+            </div>
+          </div>
+
+          <!-- Single Click Tap to Play & Delete -->
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button type="button" class="play-clip-btn flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center justify-center gap-2">
+              <span>▶ Play Clip</span>
+            </button>
+            <a href="${url}" download="${item.name}_${item.targetword}.wav" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-xs font-semibold transition">
+              ⬇️ WAV
+            </a>
+            <button type="button" class="delete-clip-btn px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition" data-id="${item.id}">
+              🗑️
+            </button>
+          </div>
+        `;
+
+        container.appendChild(card);
+
+        // Tap to play audio controller
+        const audio = new Audio(url);
+        const playBtn = card.querySelector('.play-clip-btn');
+        playBtn.addEventListener('click', () => {
+          if (audio.paused) {
+            document.querySelectorAll('audio').forEach(a => a.pause());
+            audio.play();
+            playBtn.innerHTML = '<span>⏸ Pause</span>';
+            playBtn.className = 'play-clip-btn flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition flex items-center justify-center gap-2';
+          } else {
+            audio.pause();
+            playBtn.innerHTML = '<span>▶ Play Clip</span>';
+            playBtn.className = 'play-clip-btn flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center justify-center gap-2';
+          }
+        });
+        audio.onended = () => {
+          playBtn.innerHTML = '<span>▶ Play Clip</span>';
+          playBtn.className = 'play-clip-btn flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center justify-center gap-2';
+        };
+
+        // Delete button
+        const delBtn = card.querySelector('.delete-clip-btn');
+        delBtn.addEventListener('click', async () => {
+          if (confirm(`Delete clip for "${item.targetword}"?`)) {
+            await deleteSample(item.id);
+            render();
+          }
+        });
+      });
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', render);
+    document.getElementById('searchInput').addEventListener('input', render);
+    document.getElementById('categoryFilter').addEventListener('change', render);
+    document.getElementById('clearAllBtn').addEventListener('click', async () => {
+      if (confirm('Delete all local samples?')) {
+        await clearAllSamples();
+        render();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>

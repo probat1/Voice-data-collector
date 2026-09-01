@@ -1,0 +1,24 @@
+{
+  "trigger_word": "suraksha",
+  "rhyming_words": [
+    "surakshit",
+    "raksha",
+    "surplus",
+    "akasha"
+  ],
+  "negative_words": [
+    "laptop",
+    "bottle",
+    "window",
+    "light",
+    "metro",
+    "college",
+    "charger",
+    "campus",
+    "water",
+    "table",
+    "fan",
+    "phone"
+  ],
+  "authorized_pin": "1234"
+}
