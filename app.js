@@ -14,11 +14,18 @@ const SESSION_STEPS = [
   { step: 5, word: 'BOTTLE', category: 'Negative Word', duration: 5, hint: 'Say random negative word "Bottle" repeatedly with 1-sec pauses.' }
 ];
 
-// Fetch Dynamic Session Words from Backend Server API
+// Fetch Dynamic Session Words from Backend Server API or Supabase Edge Function
 async function fetchServerSessionWords(speakerName) {
   if (!speakerName) return;
   try {
-    const res = await fetch(`${BACKEND_API_URL}/api/session-words?speaker=${encodeURIComponent(speakerName)}`, {
+    let apiUrl = BACKEND_API_URL;
+    if (apiUrl.includes('get-session-words')) {
+      apiUrl = `${apiUrl}?speaker=${encodeURIComponent(speakerName)}`;
+    } else {
+      apiUrl = `${apiUrl}/api/session-words?speaker=${encodeURIComponent(speakerName)}`;
+    }
+
+    const res = await fetch(apiUrl, {
       headers: { 'X-Collector-PIN': DEFAULT_PIN }
     });
     if (res.ok) {

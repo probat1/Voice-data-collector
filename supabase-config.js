@@ -5,5 +5,5 @@ const SUPABASE_ANON_KEY = 'sb_publishable_sFQ1LqTF2CZ6y-ZnsGYu9Q_NILLEtSM';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Backend Server API URL (Python FastAPI server or Supabase Edge Function)
-export const BACKEND_API_URL = 'http://localhost:8000';
+// Deployed Supabase Edge Function URL Endpoint
+export const BACKEND_API_URL = 'https://ethzeecixqtcfumnolly.supabase.co/functions/v1/get-session-words';
