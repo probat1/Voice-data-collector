@@ -206,6 +206,16 @@ function updateStepUI() {
   stepInstruction.textContent = current.hint;
   durationBadge.textContent = `${current.duration} Seconds`;
   
+  // Highlight Active Duration Button
+  document.querySelectorAll('.duration-btn').forEach(btn => {
+    const btnSec = parseInt(btn.getAttribute('data-sec'), 10);
+    if (btnSec === current.duration) {
+      btn.className = 'duration-btn flex-1 py-1 rounded-lg text-xs font-bold bg-indigo-600 border border-indigo-400 text-white shadow transition';
+    } else {
+      btn.className = 'duration-btn flex-1 py-1 rounded-lg text-xs font-semibold bg-white/5 border border-white/10 text-slate-300 hover:text-white transition';
+    }
+  });
+
   sessionHeader.classList.remove('hidden');
   recordSection.classList.remove('hidden');
   recordBtn.classList.remove('hidden');
@@ -219,6 +229,17 @@ function updateStepUI() {
   
   showStatus(`Step ${current.step}: Click microphone to record "${current.word}"`, 'info');
 }
+
+// Interactive Duration Button Event Listeners
+document.querySelectorAll('.duration-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const selectedSecs = parseInt(btn.getAttribute('data-sec'), 10);
+    if (!isNaN(selectedSecs)) {
+      SESSION_STEPS[currentStepIndex].duration = selectedSecs;
+      updateStepUI();
+    }
+  });
+});
 
 // ============================================
 // Audio Visualizer Loop

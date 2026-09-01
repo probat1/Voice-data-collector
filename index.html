@@ -109,10 +109,20 @@
           Repeat target word multiple times with ~1s pauses (varying pitch & speed).
         </p>
 
-        <!-- Dynamic Duration Indicator -->
-        <div class="mt-3 flex items-center justify-center gap-2">
-          <span class="text-xs text-slate-400">Target Duration:</span>
-          <span id="durationBadge" class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-white/10 text-emerald-400 border border-emerald-500/30">20 Seconds</span>
+        <!-- Dynamic Duration Indicator & Clickable Selector -->
+        <div class="mt-3 flex flex-col items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl p-2.5">
+          <div class="flex items-center justify-between w-full px-1">
+            <span class="text-xs text-slate-400 font-medium">Record Duration:</span>
+            <span id="durationBadge" class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">20 Seconds</span>
+          </div>
+          <div id="durationButtons" class="flex items-center gap-1.5 w-full pt-1 border-t border-white/10">
+            <span class="text-[11px] text-slate-400 font-semibold mr-1">Select:</span>
+            <button type="button" class="duration-btn flex-1 py-1 rounded-lg text-xs font-semibold bg-white/5 border border-white/10 text-slate-300 hover:text-white transition" data-sec="5">5s</button>
+            <button type="button" class="duration-btn flex-1 py-1 rounded-lg text-xs font-semibold bg-white/5 border border-white/10 text-slate-300 hover:text-white transition" data-sec="10">10s</button>
+            <button type="button" class="duration-btn flex-1 py-1 rounded-lg text-xs font-semibold bg-white/5 border border-white/10 text-slate-300 hover:text-white transition" data-sec="15">15s</button>
+            <button type="button" class="duration-btn flex-1 py-1 rounded-lg text-xs font-semibold bg-white/5 border border-white/10 text-slate-300 hover:text-white transition" data-sec="20">20s</button>
+            <button type="button" class="duration-btn flex-1 py-1 rounded-lg text-xs font-semibold bg-white/5 border border-white/10 text-slate-300 hover:text-white transition" data-sec="30">30s</button>
+          </div>
         </div>
       </div>
 
@@ -204,6 +214,6 @@
     </div>
   </main>
 
-  <script type="module" src="app.js?v=1.0.1"></script>
+  <script type="module" src="app.js?v=1.0.2"></script>
 </body>
 </html>
