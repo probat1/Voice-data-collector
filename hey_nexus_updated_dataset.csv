@@ -1,0 +1,174 @@
+Word,Label
+Hey Nexus,trigger_word
+Hey,rhyming_word
+Nexus,rhyming_word
+Say Lexus,rhyming_word
+Play Texas,rhyming_word
+Hey Plexus,rhyming_word
+Grey Hexes,rhyming_word
+They Flex Us,rhyming_word
+Ray Vexes,rhyming_word
+Weigh Taxes,rhyming_word
+Hey Sexes,rhyming_word
+Pay Taxes,rhyming_word
+May Text Us,rhyming_word
+Hey Excess,rhyming_word
+Say Flexes,rhyming_word
+Play Tetris,rhyming_word
+Hey Next Is,rhyming_word
+Day Wrecks Us,rhyming_word
+Bay Texas,rhyming_word
+Spray Hexes,rhyming_word
+Lay Tracks,rhyming_word
+Stray Mechs,rhyming_word
+Way Next Is,rhyming_word
+Hey Focus,rhyming_word
+Pay Check Is,rhyming_word
+Stay Restless,rhyming_word
+Next,rhyming_word
+Heys,rhyming_word
+Texans,rhyming_word
+Turn on the lights,negative_word
+Turn off the fan,negative_word
+Set a timer,negative_word
+What time is it,negative_word
+Play some music,negative_word
+Stop listening,negative_word
+Volume up,negative_word
+Volume down,negative_word
+Mute,negative_word
+Next song,negative_word
+Previous song,negative_word
+Pause,negative_word
+Resume,negative_word
+Read my messages,negative_word
+Send an email,negative_word
+Call mom,negative_word
+Check the weather,negative_word
+Is it raining,negative_word
+Lock the door,negative_word
+Open the garage,negative_word
+Start the vacuum,negative_word
+Stop the robot,negative_word
+Where are my keys,negative_word
+I am going to the store,negative_word
+What is for dinner,negative_word
+I need a coffee,negative_word
+Can you hear me,negative_word
+Hold on a second,negative_word
+I will be right back,negative_word
+See you tomorrow,negative_word
+Have a good night,negative_word
+Did you lock the door,negative_word
+Turn off the TV,negative_word
+Wash the dishes,negative_word
+Wake me up at seven,negative_word
+Where is my phone,negative_word
+I am running late,negative_word
+I was thinking,negative_word
+Maybe we should,negative_word
+Did you know,negative_word
+I don't understand,negative_word
+Let's go outside,negative_word
+Are you ready,negative_word
+I am tired,negative_word
+This is great,negative_word
+What do you mean,negative_word
+I forgot,negative_word
+Can you help me,negative_word
+It is over there,negative_word
+Look at this,negative_word
+That makes sense,negative_word
+I have a question,negative_word
+No way,negative_word
+Yes please,negative_word
+Thank you,negative_word
+You're welcome,negative_word
+Excuse me,negative_word
+Computer,negative_word
+System,negative_word
+Machine,negative_word
+Device,negative_word
+Phone,negative_word
+Tablet,negative_word
+Screen,negative_word
+Run,negative_word
+Walk,negative_word
+Jump,negative_word
+Sit,negative_word
+Stand,negative_word
+Speak,negative_word
+Listen,negative_word
+Red,negative_word
+Green,negative_word
+Blue,negative_word
+Yellow,negative_word
+Black,negative_word
+White,negative_word
+Zero,negative_word
+One,negative_word
+Two,negative_word
+Three,negative_word
+Four,negative_word
+Five,negative_word
+Six,negative_word
+Seven,negative_word
+Eight,negative_word
+Nine,negative_word
+Ten,negative_word
+Good morning,negative_word
+Good afternoon,negative_word
+Good evening,negative_word
+Good night,negative_word
+Hello,negative_word
+Hi,negative_word
+Hey there,negative_word
+Greetings,negative_word
+Farewell,negative_word
+Goodbye,negative_word
+See you later,negative_word
+Take care,negative_word
+Have a good day,negative_word
+What's up,negative_word
+Not much,negative_word
+How are you,negative_word
+I am fine,negative_word
+Where are you,negative_word
+I am here,negative_word
+Let's eat,negative_word
+I am hungry,negative_word
+I am thirsty,negative_word
+Water please,negative_word
+Coffee,negative_word
+Tea,negative_word
+Breakfast,negative_word
+Lunch,negative_word
+Dinner,negative_word
+Snack,negative_word
+Dessert,negative_word
+Monday,negative_word
+Tuesday,negative_word
+Wednesday,negative_word
+Thursday,negative_word
+Friday,negative_word
+Saturday,negative_word
+Sunday,negative_word
+Table,negative_word
+Chair,negative_word
+Window,negative_word
+Door,negative_word
+House,negative_word
+Car,negative_word
+Street,negative_word
+Book,negative_word
+Pen,negative_word
+Vanakkam,negative_word
+Eppadi irukkinga,negative_word
+Saaptingala,negative_word
+Sari,negative_word
+Illa,negative_word
+Namaste,negative_word
+Haan,negative_word
+Nahi,negative_word
+Theek hai,negative_word
+Chalo,negative_word
