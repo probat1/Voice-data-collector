@@ -4,7 +4,7 @@ import { supabase, BACKEND_API_URL, SUPABASE_ANON_KEY } from './supabase-config.
 // State Management & Constants
 // ============================================
 
-const DEFAULT_PIN = '11322504';
+const DEFAULT_PIN = '113225';
 
 const SESSION_STEPS = [
   { step: 1, word: 'HEY NEXUS', category: 'Trigger Word', duration: 30, hint: 'Repeat "Hey Nexus" multiple times with 1-sec pauses (varying pitch, speed & tone).' },
