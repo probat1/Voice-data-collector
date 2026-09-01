@@ -4,14 +4,14 @@ import { supabase, BACKEND_API_URL, SUPABASE_ANON_KEY } from './supabase-config.
 // State Management & Constants
 // ============================================
 
-const DEFAULT_PIN = '1234';
+const DEFAULT_PIN = '11322504';
 
 const SESSION_STEPS = [
-  { step: 1, word: 'SURAKSHA', category: 'Trigger Word', duration: 20, hint: 'Repeat "Suraksha" multiple times with 1-sec pauses (varying pitch, speed & tone).' },
-  { step: 2, word: 'SURAKSHIT', category: 'Rhyming Word', duration: 5, hint: 'Say phonetically similar word "Surakshit" repeatedly with 1-sec pauses.' },
-  { step: 3, word: 'RAKSHA', category: 'Rhyming Word', duration: 5, hint: 'Say phonetically similar word "Raksha" repeatedly with 1-sec pauses.' },
-  { step: 4, word: 'LAPTOP', category: 'Negative Word', duration: 5, hint: 'Say random negative word "Laptop" repeatedly with 1-sec pauses.' },
-  { step: 5, word: 'BOTTLE', category: 'Negative Word', duration: 5, hint: 'Say random negative word "Bottle" repeatedly with 1-sec pauses.' }
+  { step: 1, word: 'HEY NEXUS', category: 'Trigger Word', duration: 30, hint: 'Repeat "Hey Nexus" multiple times with 1-sec pauses (varying pitch, speed & tone).' },
+  { step: 2, word: 'HEY', category: 'Rhyming Word', duration: 5, hint: 'Say phonetically similar word "Hey" repeatedly with 1-sec pauses.' },
+  { step: 3, word: 'NEXUS', category: 'Rhyming Word', duration: 5, hint: 'Say phonetically similar word "Nexus" repeatedly with 1-sec pauses.' },
+  { step: 4, word: 'TURN ON THE LIGHTS', category: 'Negative Word', duration: 5, hint: 'Say random negative phrase repeatedly with 1-sec pauses.' },
+  { step: 5, word: 'SET A TIMER', category: 'Negative Word', duration: 5, hint: 'Say random negative phrase repeatedly with 1-sec pauses.' }
 ];
 
 // Fetch Dynamic Session Words from Backend Server API or Supabase Edge Function

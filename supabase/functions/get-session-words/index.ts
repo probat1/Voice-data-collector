@@ -38,8 +38,10 @@ serve(async (req: Request) => {
     const url = new URL(req.url);
     const pinHeader = req.headers.get("x-collector-pin");
 
+    const authorizedPin = Deno.env.get("AUTHORIZED_PIN") || "11322504";
+
     // PIN Security Check
-    if (pinHeader && pinHeader !== CONFIG.authorized_pin) {
+    if (pinHeader && pinHeader !== authorizedPin) {
       return new Response(
         JSON.stringify({ error: "Unauthorized: Invalid PIN header." }),
         { status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
