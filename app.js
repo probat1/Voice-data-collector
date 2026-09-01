@@ -1,4 +1,4 @@
-import { supabase, BACKEND_API_URL } from './supabase-config.js';
+import { supabase, BACKEND_API_URL, SUPABASE_ANON_KEY } from './supabase-config.js';
 
 // ============================================
 // State Management & Constants
@@ -26,7 +26,11 @@ async function fetchServerSessionWords(speakerName) {
     }
 
     const res = await fetch(apiUrl, {
-      headers: { 'X-Collector-PIN': DEFAULT_PIN }
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'X-Collector-PIN': DEFAULT_PIN
+      }
     });
     if (res.ok) {
       const data = await res.json();
