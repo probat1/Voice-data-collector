@@ -10,3 +10,6 @@ __pycache__/
 
 # Dependencies
 node_modules/
+
+# Secrets
+supabase/

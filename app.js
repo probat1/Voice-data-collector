@@ -41,6 +41,10 @@ async function fetchServerSessionWords(speakerName, pinToVerify) {
 
     if (res.ok) {
       const data = await res.json();
+      console.log('--- WORDS RECEIVED FROM SERVER ---');
+      console.log(data);
+      console.log('--------------------------------');
+      
       if (data.trigger_word) {
         SESSION_STEPS[0].word = data.trigger_word.toUpperCase();
         SESSION_STEPS[0].hint = `Repeat "${SESSION_STEPS[0].word}" multiple times with 1-sec pauses (varying pitch & tone).`;
@@ -466,27 +470,43 @@ async function processAndSliceAudio(blob) {
     const pcmData = fullAudioBuffer.getChannelData(0);
     const sampleRate = fullAudioBuffer.sampleRate;
 
-    const silenceThreshold = 0.018;
-    const minSilenceSamples = Math.floor(sampleRate * 0.3);
-    const minClipSamples = Math.floor(sampleRate * 0.4);
+    const windowSize = Math.floor(sampleRate * 0.02); // 20ms windows
+    
+    // 1. Calculate RMS for all windows to find Dynamic Threshold
+    const rmsValues = [];
+    for (let i = 0; i < pcmData.length; i += windowSize) {
+      let sum = 0;
+      for (let j = i; j < i + windowSize && j < pcmData.length; j++) {
+        sum += pcmData[j] * pcmData[j];
+      }
+      rmsValues.push(Math.sqrt(sum / windowSize));
+    }
+    
+    // Sort to find percentiles for dynamic thresholding
+    const sortedRms = [...rmsValues].sort((a, b) => a - b);
+    const noiseFloor = sortedRms[Math.floor(sortedRms.length * 0.1)] || 0;
+    const peakVolume = sortedRms[Math.floor(sortedRms.length * 0.95)] || 0;
+    
+    // Dynamic Threshold: 15% above noise floor towards peak, with an absolute minimum to prevent hyper-sensitivity in perfectly silent rooms
+    let silenceThreshold = noiseFloor + ((peakVolume - noiseFloor) * 0.15);
+    silenceThreshold = Math.max(silenceThreshold, 0.005); 
+
+    const minSilenceSamples = Math.floor(sampleRate * 0.3); // 300ms silence to split words
+    const minClipSamples = Math.floor(sampleRate * 0.2); // minimum 200ms clip to reject clicks/pops
 
     let speechSegments = [];
     let inSpeech = false;
     let speechStart = 0;
     let silenceCounter = 0;
 
-    const windowSize = Math.floor(sampleRate * 0.02);
-    for (let i = 0; i < pcmData.length; i += windowSize) {
-      let sum = 0;
-      for (let j = i; j < i + windowSize && j < pcmData.length; j++) {
-        sum += pcmData[j] * pcmData[j];
-      }
-      const rms = Math.sqrt(sum / windowSize);
+    for (let w = 0; w < rmsValues.length; w++) {
+      const rms = rmsValues[w];
+      const i = w * windowSize;
 
       if (rms >= silenceThreshold) {
         if (!inSpeech) {
           inSpeech = true;
-          speechStart = Math.max(0, i - Math.floor(sampleRate * 0.1));
+          speechStart = Math.max(0, i - Math.floor(sampleRate * 0.15)); // 150ms pre-roll padding
         }
         silenceCounter = 0;
       } else {
@@ -494,7 +514,7 @@ async function processAndSliceAudio(blob) {
           silenceCounter += windowSize;
           if (silenceCounter >= minSilenceSamples) {
             inSpeech = false;
-            let speechEnd = Math.min(pcmData.length, i + Math.floor(sampleRate * 0.1));
+            let speechEnd = Math.min(pcmData.length, i + Math.floor(sampleRate * 0.15)); // 150ms post-roll padding
             if (speechEnd - speechStart >= minClipSamples) {
               speechSegments.push({ start: speechStart, end: speechEnd });
             }
@@ -756,12 +776,14 @@ uploadChunksBtn.addEventListener('click', async () => {
         .from('recordings')
         .upload(storagePath, chunk.blob, { contentType: 'audio/wav', upsert: false });
 
+      if (uploadError) console.error("Storage Upload Error:", uploadError);
+
       const { data: publicUrlData } = supabase.storage.from('recordings').getPublicUrl(storagePath);
       const audioUrl = publicUrlData ? publicUrlData.publicUrl : '';
 
       const { error: dbError } = await supabase.from('voiceSample').insert([{
         name: safe(speaker),
-        targetword: safe(current.word),
+        targetword: current.word, // IMPORTANT: Removed safe() wrapper to maintain exact string matching
         category: current.category,
         hasbackgroundnoise: noisyEnvCheckbox.checked,
         audiourl: audioUrl,
@@ -771,7 +793,11 @@ uploadChunksBtn.addEventListener('click', async () => {
         createdAT: new Date().toISOString()
       }]);
 
-      if (!dbError) successCount++;
+      if (dbError) {
+        console.error("Database Insert Error:", dbError);
+      } else {
+        successCount++;
+      }
     }
 
     showStatus(`Uploaded ${confirmedChunks.length} clip(s) for ${current.word}!`, 'success');
