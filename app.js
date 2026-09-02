@@ -178,7 +178,7 @@ async function loadSpeakers() {
     saved = JSON.parse(localStorage.getItem('voice_collector_speakers') || '["rahul", "priya", "alex"]');
   }
 
-  speakerSelect.innerHTML = '';
+  speakerSelect.innerHTML = '<option value="" disabled selected>-- Select Speaker --</option>';
   saved.forEach(spk => {
     const opt = document.createElement('option');
     opt.value = spk.toLowerCase();
@@ -247,6 +247,17 @@ noisyEnvCheckbox.addEventListener('change', () => {
 
 function updateStepUI() {
   const current = SESSION_STEPS[currentStepIndex];
+  
+  const hasSpeaker = speakerSelect.value && speakerSelect.value !== '__add_new__';
+  if (!hasSpeaker) {
+    sessionHeader.classList.add('hidden');
+    recordSection.classList.add('hidden');
+    chunksSection.classList.add('hidden');
+    completionScreen.classList.add('hidden');
+    showStatus('Please select or add a speaker from the dropdown above to begin.', 'info');
+    return;
+  }
+
   stepBadge.textContent = `Step ${current.step} of ${SESSION_STEPS.length}`;
   categoryBadge.textContent = current.category;
   targetWordDisplay.textContent = current.word;
