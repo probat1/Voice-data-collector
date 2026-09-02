@@ -713,7 +713,7 @@ uploadChunksBtn.addEventListener('click', async () => {
 
       const { error: uploadError } = await supabase.storage
         .from('recordings')
-        .upload(storagePath, chunk.blob, { contentType: 'audio/wav', upsert: true });
+        .upload(storagePath, chunk.blob, { contentType: 'audio/wav', upsert: false });
 
       const { data: publicUrlData } = supabase.storage.from('recordings').getPublicUrl(storagePath);
       const audioUrl = publicUrlData ? publicUrlData.publicUrl : '';
