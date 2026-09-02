@@ -165,8 +165,19 @@ lockBtn.addEventListener('click', () => {
 // Speaker Management
 // ============================================
 
-function loadSpeakers() {
-  const saved = JSON.parse(localStorage.getItem('voice_collector_speakers') || '["rahul", "priya", "alex"]');
+async function loadSpeakers() {
+  let saved = ['rahul', 'priya', 'alex'];
+  try {
+    const { data, error } = await supabase.from('speakers').select('name').order('name');
+    if (data && !error && data.length > 0) {
+      saved = data.map(d => d.name);
+    } else {
+      saved = JSON.parse(localStorage.getItem('voice_collector_speakers') || '["rahul", "priya", "alex"]');
+    }
+  } catch (err) {
+    saved = JSON.parse(localStorage.getItem('voice_collector_speakers') || '["rahul", "priya", "alex"]');
+  }
+
   speakerSelect.innerHTML = '';
   saved.forEach(spk => {
     const opt = document.createElement('option');
@@ -191,18 +202,37 @@ speakerSelect.addEventListener('change', async () => {
   }
 });
 
-saveSpeakerBtn.addEventListener('click', () => {
-  const newName = newSpeakerInput.value.trim();
+saveSpeakerBtn.addEventListener('click', async () => {
+  const newName = newSpeakerInput.value.trim().toLowerCase();
   if (!newName) return;
+  
+  saveSpeakerBtn.disabled = true;
+  saveSpeakerBtn.textContent = '...';
+
+  try {
+    // Sync to Supabase Database to share across all devices
+    await supabase.from('speakers').insert([{ name: newName }]);
+  } catch(e) {
+    console.warn("Failed to sync speaker to Supabase", e);
+  }
+
+  // Backup locally
   const saved = JSON.parse(localStorage.getItem('voice_collector_speakers') || '["rahul", "priya", "alex"]');
-  if (!saved.includes(newName.toLowerCase())) {
-    saved.push(newName.toLowerCase());
+  if (!saved.includes(newName)) {
+    saved.push(newName);
     localStorage.setItem('voice_collector_speakers', JSON.stringify(saved));
   }
-  loadSpeakers();
-  speakerSelect.value = newName.toLowerCase();
+
+  await loadSpeakers();
+  speakerSelect.value = newName;
   newSpeakerContainer.classList.add('hidden');
   newSpeakerInput.value = '';
+  
+  saveSpeakerBtn.disabled = false;
+  saveSpeakerBtn.textContent = 'Save';
+
+  await fetchServerSessionWords(speakerSelect.value);
+  updateStepUI();
 });
 
 // Environment Checkbox Toggle
@@ -787,7 +817,7 @@ function showStatus(msg, type = 'info') {
 // App Initialization
 (async function initApp() {
   initAuth();
-  loadSpeakers();
+  await loadSpeakers();
   if (speakerSelect.value && speakerSelect.value !== '__add_new__') {
     await fetchServerSessionWords(speakerSelect.value);
   }
